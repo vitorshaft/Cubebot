@@ -1,4 +1,6 @@
 # sim.py, simConst.py, and the remote API library available
+#python 3.7
+#https://www.coppeliarobotics.com/helpFiles/en/remoteApiFunctionsPython.htm
 import time
 import cv2
 import numpy as np
@@ -38,7 +40,7 @@ if clientID!=-1:
 
     # Set-up some movement variables:
     Vel=5*math.pi/180
-    Acel=10*math.pi/180
+    Acel=5*math.pi/180
     Velmax=[Vel,Vel,Vel,Vel,Vel,Vel]
     Acelmax=[Acel,Acel,Acel,Acel,Acel,Acel]
     CoordVel=[0,0,0,0,0,0]
@@ -55,6 +57,12 @@ if clientID!=-1:
     # Espera de leitura
     espera_de_execução_movimento('Ler')
     
+    j1 = 0
+    j2 = 90*math.pi/180
+    j3 = 90*math.pi/180
+    j4 = 0
+    j5 = 0
+    j6 = 0
 
     # Envia a primeira sequência de movimento
     #Config=[30*math.pi/180,30*math.pi/180,-30*math.pi/180,90*math.pi/180,90*math.pi/180,90*math.pi/180]
