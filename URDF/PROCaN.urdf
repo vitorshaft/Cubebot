@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<robot name="Cubebot__44__">
+    <link name="Cubebot__44__">
+        <inertial>
+            <origin rpy="2.103389 3.620906 2.881740" xyz="0.000076 -0.000068 0.000068" />
+            <inertia ixx="0.014531539753079" ixy="0.0" izz="0.009492845274508" iyz="0.0" iyy="0.0071119051426649" ixz="0.0" />
+            <mass value="0.59400004148483" />
+        </inertial>
+        <collision>
+            <origin xyz="0.000000 0.000000 0.000000" rpy="-3.141593 3.141593 -3.141593" />
+            <geometry>
+                <mesh filename="file://C:/Program Files/CoppeliaRobotics/CoppeliaSimEdu/cadFiles/PROCaN_Cubebot__44__.dae" />
+            </geometry>
+        </collision>
+    </link>
+    <link name="L1__48__">
+        <inertial>
+            <origin rpy="-1.901318 3.807273 0.200310" xyz="0.007019 0.008148 -0.000183" />
+            <inertia ixx="2.0740895706695e-05" ixy="0.0" izz="4.6158664190443e-05" iyz="0.0" iyy="5.9932084695902e-05" ixz="0.0" />
+            <mass value="0.029160004109144" />
+        </inertial>
+        <collision>
+            <origin xyz="0.000000 0.000000 0.000000" rpy="-3.141593 3.141593 -3.141593" />
+            <geometry>
+                <mesh filename="file://C:/Program Files/CoppeliaRobotics/CoppeliaSimEdu/cadFiles/PROCaN_L1__48__.dae" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="J1__47__" type="revolute">
+        <axis xyz="0 0 1" />
+        <limit upper="3.1415926218033" lower="-1.5707963705063" effort="700.0" velocity="2.094395160675" />
+        <parent link="Cubebot__44__" />
+        <child link="L1__48__" />
+        <origin xyz="-0.106557 -0.001308 0.027834" rpy="-0.205664 1.578532 1.356108" />
+    </joint>
+    <link name="L2__51__">
+        <inertial>
+            <origin rpy="-1.571759 3.139581 -1.570798" xyz="-0.012264 -0.000444 -0.151317" />
+            <inertia ixx="7.7760007116012e-05" ixy="0.0" izz="7.7760007116012e-05" iyz="0.0" iyy="7.7760007116012e-05" ixz="0.0" />
+            <mass value="0.077760003507137" />
+        </inertial>
+        <collision>
+            <origin xyz="0.000000 0.000000 0.000000" rpy="-3.141593 3.141593 -3.141593" />
+            <geometry>
+                <mesh filename="file://C:/Program Files/CoppeliaRobotics/CoppeliaSimEdu/cadFiles/PROCaN_L2__51__.dae" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="J2__50__" type="revolute">
+        <axis xyz="0 0 1" />
+        <limit upper="4.7123889923096" lower="0.0" effort="7.0" velocity="0.17453292012215" />
+        <parent link="L1__48__" />
+        <child link="L2__51__" />
+        <origin xyz="0.004634 -0.104007 0.001481" rpy="-1.550676 3.116448 -0.054962" />
+    </joint>
+    <link name="L3__54__">
+        <inertial>
+            <origin rpy="0.097327 3.915530 0.341769" xyz="-0.007874 -0.000122 -0.000031" />
+            <inertia ixx="4.9817586841527e-05" ixy="0.0" izz="4.2361378291389e-05" iyz="0.0" iyy="2.7378926461097e-05" ixz="0.0" />
+            <mass value="0.038880005478859" />
+        </inertial>
+        <collision>
+            <origin xyz="0.000000 0.000000 0.000000" rpy="-3.141593 3.141593 -3.141593" />
+            <geometry>
+                <mesh filename="file://C:/Program Files/CoppeliaRobotics/CoppeliaSimEdu/cadFiles/PROCaN_L3__54__.dae" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="J3__53__" type="revolute">
+        <axis xyz="0 0 1" />
+        <limit upper="4.7123889923096" lower="0.0" effort="1.1000000238419" velocity="2.094395160675" />
+        <parent link="L2__51__" />
+        <child link="L3__54__" />
+        <origin xyz="0.013746 -0.006830 -0.087411" rpy="0.011558 3.195312 0.016467" />
+    </joint>
+    <link name="L4__57__">
+        <inertial>
+            <origin rpy="0.097327 3.915530 0.341769" xyz="-0.007874 -0.000122 -0.000031" />
+            <inertia ixx="4.9817586841527e-05" ixy="0.0" izz="4.2361378291389e-05" iyz="0.0" iyy="2.7378926461097e-05" ixz="0.0" />
+            <mass value="0.038880005478859" />
+        </inertial>
+        <collision>
+            <origin xyz="0.000000 0.000000 0.000000" rpy="-3.141593 3.141593 -3.141593" />
+            <geometry>
+                <mesh filename="file://C:/Program Files/CoppeliaRobotics/CoppeliaSimEdu/cadFiles/PROCaN_L4__57__.dae" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="J4__56__" type="revolute">
+        <axis xyz="0 0 1" />
+        <limit upper="3.1415927410126" lower="0.0" effort="1.1000000238419" velocity="2.094395160675" />
+        <parent link="L3__54__" />
+        <child link="L4__57__" />
+        <origin xyz="-0.000685 -0.000586 -0.102996" rpy="3.141593 3.141592 3.141593" />
+    </joint>
+    <link name="L5__60__">
+        <inertial>
+            <origin rpy="-3.141593 3.141593 -3.141593" xyz="0.000000 0.000000 0.000000" />
+            <inertia ixx="0.0032000038772821" ixy="0.0" izz="0.0032000038772821" iyz="0.0" iyy="0.0032000038772821" ixz="0.0" />
+            <mass value="3.2000036239624" />
+        </inertial>
+        <collision>
+            <origin xyz="0.000000 0.000000 0.000000" rpy="-3.141593 3.141593 -3.141593" />
+            <geometry>
+                <mesh filename="file://C:/Program Files/CoppeliaRobotics/CoppeliaSimEdu/cadFiles/PROCaN_L5__60__.dae" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="J5__59__" type="revolute">
+        <axis xyz="0 0 1" />
+        <limit upper="3.1415927410126" lower="0.0" effort="1.1000000238419" velocity="2.094395160675" />
+        <parent link="L4__57__" />
+        <child link="L5__60__" />
+        <origin xyz="-0.001084 -0.002312 -0.041077" rpy="-1.570791 1.570796 0.000000" />
+    </joint>
+    <link name="Shape__62__">
+        <inertial>
+            <origin rpy="-3.141593 3.141593 -3.141593" xyz="0.000000 0.000000 0.000000" />
+            <inertia ixx="1.0000000656873e-05" ixy="0.0" izz="1.0000000656873e-05" iyz="0.0" iyy="1.0000000656873e-05" ixz="0.0" />
+            <mass value="0.0099999997764826" />
+        </inertial>
+        <collision>
+            <origin xyz="0.000000 0.000000 0.000000" rpy="-3.141593 3.141593 -3.141593" />
+            <geometry>
+                <mesh filename="file://C:/Program Files/CoppeliaRobotics/CoppeliaSimEdu/cadFiles/PROCaN_Shape__62__.dae" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="J6__61__" type="revolute">
+        <axis xyz="0 0 1" />
+        <limit upper="3.1415927410126" lower="0.0" effort="700.0" velocity="2.094395160675" />
+        <parent link="L5__60__" />
+        <child link="Shape__62__" />
+        <origin xyz="-0.074207 0.033411 0.008318" rpy="1.570892 3.118442 1.544044" />
+    </joint>
+</robot>
