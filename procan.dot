@@ -1,0 +1,4 @@
+digraph G {
+graph [rankdir=LR];
+  BASE [shape=square, style=filled, fillcolor=gray]
+  link1 [shape="circle"];
