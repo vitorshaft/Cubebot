@@ -51,7 +51,7 @@ tau = procan.rne(qp,0.5+np.zeros((6,)),0.5+np.zeros((6,)))
 #pc.robot.accel(qp,0.5 * np.ones(6), np.zeros(6))
 #pc.robot.inertia(qp)
 
-qr = np.array([[0, 0, 0, 0, 0, 0],[0,0,pi,1.57,pi,1.57]])
+qr = np.array([[0,0,pi,1.57,pi,1.57]])
 pIn = procan.inertia(qr)
 print(pIn)
 '''
@@ -82,4 +82,7 @@ erro em:  1
   [0. 0. 0. 0. 0. 0.]
   [0. 0. 0. 0. 0. 0.]
   [0. 0. 0. 0. 0. 0.]]]
+
+
+  
 '''

@@ -28,7 +28,7 @@ robot = rtb.robot.DHRobot(
         rtb.robot.RevoluteDH(d=-0.0904, a=0.0019, alpha=pi/2),
         rtb.robot.RevoluteDH(a=0.0438, alpha=-pi/2),#,
         rtb.robot.RevoluteDH()
-    ], name="PROCaN")
+    ], name="PROCaN", manufacturer="Vitor Domingues", base = SE3(-0.116,0,0))
 
 print(robot)
 
