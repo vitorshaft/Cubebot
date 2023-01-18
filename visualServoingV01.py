@@ -4,6 +4,7 @@
 import time
 import cv2
 import numpy as np
+import procanCorke as pc
 
 try:
     import sim
@@ -14,6 +15,21 @@ except:
  
 import msgpack
 import math
+
+
+def tImagem(x_im, y_im, z_real):
+    c_u = 334.052
+    c_v = 257.256
+    imAlpha = 1.001
+    f = 1189.5555738648386
+    x_real = (z_real*(x_im-c_u))/(f*imAlpha)
+    y_real = (z_real*(y_im-c_v))/(f)
+    return([x_real,y_real,z_real])
+
+def ik(lista):
+    from spatialmath import SE3
+    Pa = SE3(lista[0],lista[1],lista[2])
+    return pc.ik(Pa)
 
 # carrega o classificador em cascata
 cascata = cv2.CascadeClassifier('cascade.xml')
@@ -59,17 +75,18 @@ if clientID!=-1:
 
     # Espera de leitura
     espera_de_execução_movimento('Ler')
-    
-    j1 = 10*math.pi/180
-    j2 = 90*math.pi/180
-    j3 = 90*math.pi/180
+    pi = math.pi
+    j1 = 0*math.pi/180
+    j2 = 45*math.pi/180
+    j3 = 45*math.pi/180
     j4 = 0
     j5 = 90*math.pi/180
-    j6 = 10*math.pi/180
+    j6 = 0*math.pi/180
 
     # Envia a primeira sequência de movimento
     #Config=[30*math.pi/180,30*math.pi/180,-30*math.pi/180,90*math.pi/180,90*math.pi/180,90*math.pi/180]
-    Config=[j1,j2,j3,j4,j5,j6]
+    #Config=[j1,j2,j3,j4,j5,j6]
+    Config=[pi-0.1468398 ,  pi-2.29526532, pi-0.61810689, 0,0,0]
     Dados_de_Movimento={"id":"SeqMov","tipo":"mov","Config":Config,"CoordVel":CoordVel,"Velmax":Velmax,"Acelmax":Acelmax}
     
     Empacotamento_dados_de_movimento=msgpack.packb(Dados_de_Movimento)
@@ -88,6 +105,8 @@ if clientID!=-1:
     centroY = int(linhas/2)         
     posicao = 90 # degrees          #valor inicial do motor do robo
     xm_atual = 160
+
+    pCube = []
 
     J0_atual = sim.simxGetJointPosition(clientID,23,sim.simx_opmode_oneshot)[1]
     J2_atual = sim.simxGetJointPosition(clientID,29,sim.simx_opmode_oneshot)[1]
@@ -150,6 +169,7 @@ if clientID!=-1:
                 #break
             #print(x_medio)
             '''
+            
             cv2.line(img, (x_medio, 0), (x_medio, 240), (0, 255, 0), 1)
             cv2.line(img, (0, y_medio), (320, y_medio), (0,255,0), 1)
             #cv2.line(cinza_mask, (x_medio, 0), (x_medio, 240), (255, 255, 255), 1)
@@ -162,6 +182,7 @@ if clientID!=-1:
             #cv2.imshow('P/B',cinza_mask)
             
             if cv2.waitKey(1) & 0xFF == ord('q'):
+                print(pCube)
                 break
         elif err == sim.simx_return_novalue_flag:
             print("no image yet")
@@ -177,8 +198,14 @@ if clientID!=-1:
         #print(xm_atual,y_medio)
         xOK = False
         yOK = False
-        dist = sim.simxReadProximitySensor(clientID,41,sim.simx_opmode_streaming)[2][2]
-        print(dist)
+        dist = sim.simxReadProximitySensor(clientID,44,sim.simx_opmode_streaming)[2][2]
+        if (dist < 2 and dist > 0.01):
+            #print(dist)
+            #tImagem(2*x_medio,2*y_medio,dist)
+            pCube.append(tImagem(2*x_medio,2*y_medio,1000*dist))
+        print(sim.simxGetObjectGroupData(clientID,1,15,sim.simx_opmode_streaming))
+        print(sim.simxGetJointPosition(clientID,26,sim.simx_opmode_oneshot))
+        #print(sim.getObjectType(26))
         if(estendido):
             if (xm_atual < 140):
                 sim.simxSetJointTargetPosition(clientID,23,atual[1]-0.01,sim.simx_opmode_oneshot)

@@ -77,7 +77,7 @@ def simbolico():
     qdd = sym.symbol('qdd_:6')#_:6')
 
 def fk(q):
-    return procan.fkine(q)
+    return procan.fkine(q)[0]
 
 def ik(p):
     return procan.ikine_LMS(p)
