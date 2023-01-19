@@ -113,12 +113,12 @@ if clientID!=-1:
     # Espera de leitura
     espera_de_execução_movimento('Ler')
     
-    j1 = 90*math.pi/180
-    j2 = 30*math.pi/180
-    j3 = 70*math.pi/180
+    j1 = 0*math.pi/180
+    j2 = 45*math.pi/180
+    j3 = 30*math.pi/180
     j4 = 0
-    j5 = 0
-    j6 = 90*math.pi/180
+    j5 = 170*math.pi/180
+    j6 = 0*math.pi/180
 
     # Envia a primeira sequência de movimento
     #Config=[30*math.pi/180,30*math.pi/180,-30*math.pi/180,90*math.pi/180,90*math.pi/180,90*math.pi/180]

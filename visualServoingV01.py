@@ -38,6 +38,8 @@ def plotar(conf,loc):
     juntas = pc.ik(TP)
     return(TP,juntas)
 
+destino = []
+
 # carrega o classificador em cascata
 cascata = cv2.CascadeClassifier('cascade.xml')
 
@@ -156,7 +158,7 @@ if clientID!=-1:
             
             cinza = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             # detecta as faces
-            faces = cascata.detectMultiScale(cinza, 1.1, 25,None,[50,50])
+            faces = cascata.detectMultiScale(cinza, 1.1, 10,None,None)#[320,240])   #(frame, fator de escala, min vizinhos, tam min, tam max,)
             
             # desenha retangulo em volta de cada face
             for (x, y, w, h) in faces:
@@ -188,9 +190,24 @@ if clientID!=-1:
             cv2.imshow('POV',img)
             cv2.imshow('P/B',cinza)
             #cv2.imshow('P/B',cinza_mask)
-            
+            q = [sim.simxGetJointPosition(clientID,23,sim.simx_opmode_oneshot)[1],
+                    sim.simxGetJointPosition(clientID,26,sim.simx_opmode_oneshot)[1],
+                    sim.simxGetJointPosition(clientID,29,sim.simx_opmode_oneshot)[1],
+                    sim.simxGetJointPosition(clientID,32,sim.simx_opmode_oneshot)[1],
+                    sim.simxGetJointPosition(clientID,35,sim.simx_opmode_oneshot)[1],
+                    sim.simxGetJointPosition(clientID,37,sim.simx_opmode_oneshot)[1]]
+            xOK = False
+            yOK = False
+            dist = sim.simxReadProximitySensor(clientID,44,sim.simx_opmode_streaming)[2][2]
+            #if (dist != 0):
+                #print(dist)
+            p_c = tImagem(2*x_medio,2*y_medio,1000*dist)
+            #print(p_c)
+            PC = plotar(q,p_c)
+            pCube.append(PC[0])
+            destino.append(PC[1])
             if cv2.waitKey(1) & 0xFF == ord('q'):
-                print(pCube)
+                print(destino[-1])
                 break
         elif err == sim.simx_return_novalue_flag:
             print("no image yet")
@@ -204,25 +221,14 @@ if clientID!=-1:
         #print(atual)
         estendido = sim.simxGetJointPosition(clientID,26,sim.simx_opmode_oneshot)[1]>=(0.3*math.pi)
         #print(xm_atual,y_medio)
-        q = [atual[1],sim.simxGetJointPosition(clientID,26,sim.simx_opmode_oneshot)[1],
-                    atualJ2[1],sim.simxGetJointPosition(clientID,32,sim.simx_opmode_oneshot)[1],
-                    sim.simxGetJointPosition(clientID,35,sim.simx_opmode_oneshot)[1],
-                    sim.simxGetJointPosition(clientID,37,sim.simx_opmode_oneshot)[1]]
-        xOK = False
-        yOK = False
-        dist = sim.simxReadProximitySensor(clientID,44,sim.simx_opmode_streaming)[2][2]
-        if (dist < 2 and dist > 0.01):
-            #print(dist)
-            p_c = tImagem(2*x_medio,2*y_medio,1000*dist)
-            PC = plotar(q,p_c)
-            pCube.append(PC[0])
+        
         #print(sim.simxGetObjectGroupData(clientID,1,15,sim.simx_opmode_streaming))
         
-        print(q)
+        #print(q)
         #print(sim.getObjectType(26))
         if(estendido):
             for i,j in enumerate(jq):
-                sim.simxSetJointTargetPosition(clientID,j,PC[1][i],sim.simx_opmode_oneshot)
+                sim.simxSetJointTargetPosition(clientID,j,destino[-1][i],sim.simx_opmode_oneshot)
             '''
             if (xm_atual < 140):
                 sim.simxSetJointTargetPosition(clientID,23,atual[1]-0.01,sim.simx_opmode_oneshot)
