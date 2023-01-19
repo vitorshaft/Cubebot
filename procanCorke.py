@@ -80,7 +80,7 @@ def fk(q):
     return procan.fkine(q)[0]
 
 def ik(p):
-    return procan.ikine_LMS(p)
+    return procan.ikine_LMS(p)[0]
 
 def jac(q):
     return procan.jacobe(q)

@@ -5,6 +5,7 @@ import time
 import cv2
 import numpy as np
 import procanCorke as pc
+from spatialmath import SE3
 
 try:
     import sim
@@ -27,9 +28,15 @@ def tImagem(x_im, y_im, z_real):
     return([x_real,y_real,z_real])
 
 def ik(lista):
-    from spatialmath import SE3
     Pa = SE3(lista[0],lista[1],lista[2])
     return pc.ik(Pa)
+
+def plotar(conf,loc):
+    T = pc.fk(conf)
+    P = SE3(loc[0],loc[1],loc[2])
+    TP = T*P
+    juntas = pc.ik(TP)
+    return(TP,juntas)
 
 # carrega o classificador em cascata
 cascata = cv2.CascadeClassifier('cascade.xml')
@@ -78,15 +85,16 @@ if clientID!=-1:
     pi = math.pi
     j1 = 0*math.pi/180
     j2 = 45*math.pi/180
-    j3 = 45*math.pi/180
+    j3 = 30*math.pi/180
     j4 = 0
-    j5 = 90*math.pi/180
+    j5 = 170*math.pi/180
     j6 = 0*math.pi/180
-
+    jq = [23,26,29,32,35,37]
     # Envia a primeira sequência de movimento
     #Config=[30*math.pi/180,30*math.pi/180,-30*math.pi/180,90*math.pi/180,90*math.pi/180,90*math.pi/180]
-    #Config=[j1,j2,j3,j4,j5,j6]
-    Config=[pi-0.1468398 ,  pi-2.29526532, pi-0.61810689, 0,0,0]
+    Config=[j1,j2,j3,j4,j5,j6]
+    #Config=[pi-0.1468398 ,  pi-2.29526532, pi-0.61810689, 0,0,0]
+    #Config = [ 0.21176678,  pi-0.52539497, pi-2.1626808 ,  0,0,0]
     Dados_de_Movimento={"id":"SeqMov","tipo":"mov","Config":Config,"CoordVel":CoordVel,"Velmax":Velmax,"Acelmax":Acelmax}
     
     Empacotamento_dados_de_movimento=msgpack.packb(Dados_de_Movimento)
@@ -136,7 +144,7 @@ if clientID!=-1:
             img = np.array(image,dtype=np.uint8)
             
             img.resize([resolution[1],resolution[0],3])
-            '''
+            
             menor = 10
             maior = 50
             low_cinza = np.array([menor,menor,menor])    #menor RGB possivel
@@ -145,7 +153,7 @@ if clientID!=-1:
             contornos, _ = cv2.findContours(cinza_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) #procura contornos da cor detectada
             
             contornos = sorted(contornos, key=lambda x:cv2.contourArea(x), reverse=True)    #inverte a ordem dos contornos            
-            '''
+            
             cinza = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             # detecta as faces
             faces = cascata.detectMultiScale(cinza, 1.1, 25,None,[50,50])
@@ -196,17 +204,26 @@ if clientID!=-1:
         #print(atual)
         estendido = sim.simxGetJointPosition(clientID,26,sim.simx_opmode_oneshot)[1]>=(0.3*math.pi)
         #print(xm_atual,y_medio)
+        q = [atual[1],sim.simxGetJointPosition(clientID,26,sim.simx_opmode_oneshot)[1],
+                    atualJ2[1],sim.simxGetJointPosition(clientID,32,sim.simx_opmode_oneshot)[1],
+                    sim.simxGetJointPosition(clientID,35,sim.simx_opmode_oneshot)[1],
+                    sim.simxGetJointPosition(clientID,37,sim.simx_opmode_oneshot)[1]]
         xOK = False
         yOK = False
         dist = sim.simxReadProximitySensor(clientID,44,sim.simx_opmode_streaming)[2][2]
         if (dist < 2 and dist > 0.01):
             #print(dist)
-            #tImagem(2*x_medio,2*y_medio,dist)
-            pCube.append(tImagem(2*x_medio,2*y_medio,1000*dist))
-        print(sim.simxGetObjectGroupData(clientID,1,15,sim.simx_opmode_streaming))
-        print(sim.simxGetJointPosition(clientID,26,sim.simx_opmode_oneshot))
+            p_c = tImagem(2*x_medio,2*y_medio,1000*dist)
+            PC = plotar(q,p_c)
+            pCube.append(PC[0])
+        #print(sim.simxGetObjectGroupData(clientID,1,15,sim.simx_opmode_streaming))
+        
+        print(q)
         #print(sim.getObjectType(26))
         if(estendido):
+            for i,j in enumerate(jq):
+                sim.simxSetJointTargetPosition(clientID,j,PC[1][i],sim.simx_opmode_oneshot)
+            '''
             if (xm_atual < 140):
                 sim.simxSetJointTargetPosition(clientID,23,atual[1]-0.01,sim.simx_opmode_oneshot)
                 xOK = False
@@ -226,7 +243,7 @@ if clientID!=-1:
             else:
                 yOK = True
                 #sim.simxSetJointTargetPosition(clientID,38,4.5,sim.simx_opmode_oneshot)
-            '''
+            
             if (xOK and yOK):
                 #print('capturar')
                 try:
@@ -234,6 +251,7 @@ if clientID!=-1:
                 except:
                     pass
             '''
+            
     # Aguarda até que a sequência de movimento acima termine a execução
     espera_de_execução_movimento('SeqMov')
     sim.simxStopSimulation(clientID,sim.simx_opmode_blocking)
