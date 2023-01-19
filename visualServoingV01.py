@@ -89,9 +89,10 @@ if clientID!=-1:
     j2 = 45*math.pi/180
     j3 = 30*math.pi/180
     j4 = 0
-    j5 = 170*math.pi/180
+    j5 = 30*math.pi/180
     j6 = 0*math.pi/180
-    jq = [23,26,29,32,35,37]
+    #jq = [23,26,29,32,35,37]
+    jq = [22, 25, 28, 31, 34, 36]
     # Envia a primeira sequência de movimento
     #Config=[30*math.pi/180,30*math.pi/180,-30*math.pi/180,90*math.pi/180,90*math.pi/180,90*math.pi/180]
     Config=[j1,j2,j3,j4,j5,j6]
@@ -115,34 +116,28 @@ if clientID!=-1:
     centroY = int(linhas/2)         
     posicao = 90 # degrees          #valor inicial do motor do robo
     xm_atual = 160
-
+    gol = False
     pCube = []
 
-    J0_atual = sim.simxGetJointPosition(clientID,23,sim.simx_opmode_oneshot)[1]
-    J2_atual = sim.simxGetJointPosition(clientID,29,sim.simx_opmode_oneshot)[1]
-    '''
-    for item in range(314):
-        sim.simxSetJointTargetPosition(clientID,23,(math.pi/2)+(item/100),sim.simx_opmode_oneshot)
-        time.sleep(0.1)
-    for item in range(150):
-        sim.simxSetJointTargetPosition(clientID,29,(math.pi/2)+(item/100),sim.simx_opmode_oneshot)
-        time.sleep(0.1)
-    '''
+    
+    
     while (sim.simxGetConnectionId(clientID) != -1):
         err, resolution, image = sim.simxGetVisionSensorImage(clientID, v1, 0, sim.simx_opmode_buffer)
         
+        J0_atual = sim.simxGetJointPosition(clientID,jq[0],sim.simx_opmode_oneshot)[1]
+        J1_atual = sim.simxGetJointPosition(clientID,jq[1],sim.simx_opmode_oneshot)[1]
+        J2_atual = sim.simxGetJointPosition(clientID,jq[2],sim.simx_opmode_oneshot)[1]
+        '''
+        for item in range(314):
+            sim.simxSetJointTargetPosition(clientID,jq[1],J1_atual+item/100,sim.simx_opmode_oneshot)
+            time.sleep(0.1)
+        for item in range(150):
+            sim.simxSetJointTargetPosition(clientID,jq[2],J2_atual+(item/100),sim.simx_opmode_oneshot)
+            time.sleep(0.1)
+        '''
         if err == sim.simx_return_ok:
             #print("image OK!!!")
-            '''
-            for item in range(157):
-                sim.simxSetJointTargetPosition(clientID,38,item/100,sim.simx_opmode_oneshot)
-                time.sleep(0.1)
             
-            for i in range(314):
-                sim.simxSetJointTargetPosition(clientID,32,i/100,sim.simx_opmode_oneshot)
-                time.sleep(0.1)
-
-            '''
             img = np.array(image,dtype=np.uint8)
             
             img.resize([resolution[1],resolution[0],3])
@@ -190,15 +185,15 @@ if clientID!=-1:
             cv2.imshow('POV',img)
             cv2.imshow('P/B',cinza)
             #cv2.imshow('P/B',cinza_mask)
-            q = [sim.simxGetJointPosition(clientID,23,sim.simx_opmode_oneshot)[1],
-                    sim.simxGetJointPosition(clientID,26,sim.simx_opmode_oneshot)[1],
-                    sim.simxGetJointPosition(clientID,29,sim.simx_opmode_oneshot)[1],
-                    sim.simxGetJointPosition(clientID,32,sim.simx_opmode_oneshot)[1],
-                    sim.simxGetJointPosition(clientID,35,sim.simx_opmode_oneshot)[1],
-                    sim.simxGetJointPosition(clientID,37,sim.simx_opmode_oneshot)[1]]
+            q = [sim.simxGetJointPosition(clientID,jq[0],sim.simx_opmode_oneshot)[1],
+                    sim.simxGetJointPosition(clientID,jq[1],sim.simx_opmode_oneshot)[1],
+                    sim.simxGetJointPosition(clientID,jq[2],sim.simx_opmode_oneshot)[1],
+                    sim.simxGetJointPosition(clientID,jq[3],sim.simx_opmode_oneshot)[1],
+                    sim.simxGetJointPosition(clientID,jq[4],sim.simx_opmode_oneshot)[1],
+                    sim.simxGetJointPosition(clientID,jq[5],sim.simx_opmode_oneshot)[1]]
             xOK = False
             yOK = False
-            dist = sim.simxReadProximitySensor(clientID,44,sim.simx_opmode_streaming)[2][2]
+            dist = sim.simxReadProximitySensor(clientID,40,sim.simx_opmode_streaming)[2][2]
             #if (dist != 0):
                 #print(dist)
             p_c = tImagem(2*x_medio,2*y_medio,1000*dist)
@@ -215,20 +210,27 @@ if clientID!=-1:
         else:
           print( err)
           break
-        atual = sim.simxGetJointPosition(clientID,23,sim.simx_opmode_oneshot)
-        atualJ2 = sim.simxGetJointPosition(clientID,29,sim.simx_opmode_oneshot)
-        atualJ6 = sim.simxGetJointPosition(clientID,38,sim.simx_opmode_oneshot)[1]
+        atual = sim.simxGetJointPosition(clientID,jq[0],sim.simx_opmode_oneshot)
+        atualJ2 = sim.simxGetJointPosition(clientID,jq[2],sim.simx_opmode_oneshot)
+        atualJ6 = sim.simxGetJointPosition(clientID,jq[5],sim.simx_opmode_oneshot)[1]
         #print(atual)
-        estendido = sim.simxGetJointPosition(clientID,26,sim.simx_opmode_oneshot)[1]>=(0.3*math.pi)
+        estendido = sim.simxGetJointPosition(clientID,jq[1],sim.simx_opmode_oneshot)[1]>=(0.1)
         #print(xm_atual,y_medio)
         
         #print(sim.simxGetObjectGroupData(clientID,1,15,sim.simx_opmode_streaming))
         
-        #print(q)
+        print(destino[0])
         #print(sim.getObjectType(26))
-        if(estendido):
+        #if(estendido):
+        if((destino[0][1] - q[1]+pi)**2 > 0.1):
+            
             for i,j in enumerate(jq):
-                sim.simxSetJointTargetPosition(clientID,j,destino[-1][i],sim.simx_opmode_oneshot)
+                if i == 1 or i == 2:
+                    sim.simxSetJointTargetPosition(clientID,j,pi-destino[0][i],sim.simx_opmode_oneshot)
+                else:
+                    sim.simxSetJointTargetPosition(clientID,j,destino[0][i],sim.simx_opmode_oneshot)
+            gol = True
+            
             '''
             if (xm_atual < 140):
                 sim.simxSetJointTargetPosition(clientID,23,atual[1]-0.01,sim.simx_opmode_oneshot)
@@ -257,7 +259,10 @@ if clientID!=-1:
                 except:
                     pass
             '''
-            
+        if(gol == True):
+            sim.simxSetJointTargetPosition(clientID,j,pi,sim.simx_opmode_oneshot)
+
+
     # Aguarda até que a sequência de movimento acima termine a execução
     espera_de_execução_movimento('SeqMov')
     sim.simxStopSimulation(clientID,sim.simx_opmode_blocking)
