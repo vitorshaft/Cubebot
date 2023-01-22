@@ -4,11 +4,11 @@ import pathlib
 import glob
 
 #amostras coletadas em um tabuleiro 8x8 com casas de 1,95cm
-pasta = "/cameraCalib/"
-extensao = ".jpg"
-tamQuad = 1.95
-larg = 8
-alt = 8
+pasta = "/coppeliaCamCalib/"
+extensao = ".png"
+tamQuad = 3.75
+larg = 5
+alt = 5
 
 def calibrate_chessboard(dir_path, image_format, square_size, width, height):
     '''Calibrate a camera using chessboard images.'''
@@ -26,7 +26,7 @@ def calibrate_chessboard(dir_path, image_format, square_size, width, height):
     imgpoints = []  # 2d points in image plane.
 
     #images = pathlib.Path(dir_path).glob(f'*.{image_format}')
-    images = glob.glob('C:/Users/vitor/3D Objects/Mestrado/Simulacao/Cubebot/cameraCalib/*.jpg')
+    images = glob.glob('C:/Users/vitor/3D Objects/Mestrado/Simulacao/Cubebot/coppeliaCamCalib/*.png')
     # Iterate through all images
     for fname in images:
         #img = cv2.imread(str(fname))
@@ -39,11 +39,18 @@ def calibrate_chessboard(dir_path, image_format, square_size, width, height):
         # If found, add object points, image points (after refining them)
         if ret:
             objpoints.append(objp)
-
             corners2 = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
             imgpoints.append(corners2)
+
+            # Draw and display the corners
+            cv2.drawChessboardCorners(img, (7,6), corners2, ret)
+            cv2.imshow('img', img)
+            cv2.waitKey(500)
 
     # Calibrate camera
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
     return [ret, mtx, dist, rvecs, tvecs]
+
+calibrate_chessboard(pasta,extensao,tamQuad,larg,alt)
+cv2.destroyAllWindows()
