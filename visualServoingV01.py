@@ -95,7 +95,9 @@ if clientID!=-1:
     j5 = 170*math.pi/180
     j6 = 0*math.pi/180
     #jq = [23,26,29,32,35,37]
-    jq = [22, 25, 28, 31, 34, 36]
+    #jq = [22, 25, 28, 31, 34, 36]
+    jq = [24, 27, 29, 32, 35, 37]
+    laser = 41
     # Envia a primeira sequência de movimento
     #Config=[30*math.pi/180,30*math.pi/180,-30*math.pi/180,90*math.pi/180,90*math.pi/180,90*math.pi/180]
     Config=[j1,j2,j3,j4,j5,j6]
@@ -197,7 +199,7 @@ if clientID!=-1:
             qTraj.append(q)
             xOK = False
             yOK = False
-            dist = sim.simxReadProximitySensor(clientID,40,sim.simx_opmode_streaming)[2][2]
+            dist = sim.simxReadProximitySensor(clientID,laser,sim.simx_opmode_streaming)[2][2]
             #if (dist != 0):
                 #print(dist)
             #print([x_medio,y_medio,1000*dist])
@@ -214,25 +216,7 @@ if clientID!=-1:
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 print(destino[-1])
                 break
-            '''
-            if cv2.waitKey(1) & 0xFF == ord('p'):
-                q1,q2,q3,q4,q5,q6 = [],[],[],[],[],[]
-                for eixo in qTraj:
-                    q1.append(eixo[0])
-                    q2.append(eixo[1])
-                    q3.append(eixo[2])
-                    q4.append(eixo[3])
-                    q5.append(eixo[4])
-                    q6.append(eixo[5])
-                plt.plot(q1, label = "q1")
-                plt.plot(q2, label = "q2")
-                plt.plot(q3, label = "q3")
-                plt.plot(q4, label = "q4")
-                plt.plot(q5, label = "q5")
-                plt.plot(q6, label = "q6")
-                plt.legend()
-                plt.show()
-            '''
+            
         elif err == sim.simx_return_novalue_flag:
             print("no image yet")
             pass
@@ -245,7 +229,8 @@ if clientID!=-1:
         #print(atual)
         estendido = sim.simxGetJointPosition(clientID,jq[1],sim.simx_opmode_oneshot)[1]>=(0.1)
         try:
-            if(((destino[0][1] - q[1]+pi)**2 > 0.1)):# and gol == False):
+            #if(((destino[0][1] - q[1]+pi)**2 > 0.1)):# and gol == False):
+            if(q > Config):
                 
                 for i,j in enumerate(jq):
                     #print(destino[-1])
