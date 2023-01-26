@@ -34,10 +34,10 @@ def ik(lista):
 
 def plotar(conf,loc):
     T = pc.fk(conf)
-    P = SE3(loc[0],loc[1],loc[2])
+    P = SE3(-loc[2],loc[1],loc[0])
     #print(P)
     TP = T*P
-    print(TP)
+    print(TP[0])
     juntas = pc.ik(TP)
     return(TP,juntas)
 
@@ -72,8 +72,8 @@ if clientID!=-1:
     # Set-up some movement variables:
     Vel=5*math.pi/180
     Acel=5*math.pi/180
-    Velmax=[Vel,Vel,Vel,Vel,Vel,Vel]
-    Acelmax=[Acel,Acel,Acel,Acel,Acel,Acel]
+    Velmax=[Vel/10,Vel,Vel,Vel,Vel,Vel]
+    Acelmax=[Acel/10,Acel,3/2*Acel,Acel,Acel,Acel]
     CoordVel=[0,0,0,0,0,0]
 
     #configurações da camera
@@ -89,15 +89,15 @@ if clientID!=-1:
     espera_de_execução_movimento('Ler')
     pi = math.pi
     j1 = 0*math.pi/180
-    j2 = 10*math.pi/180
-    j3 = 80*math.pi/180
+    j2 = 15*math.pi/180
+    j3 = 45*math.pi/180
     j4 = 0
-    j5 = 170*math.pi/180
+    j5 = 180*math.pi/180
     j6 = 0*math.pi/180
     #jq = [23,26,29,32,35,37]
     #jq = [22, 25, 28, 31, 34, 36]
     jq = [24, 27, 29, 32, 35, 37]
-    laser = 41
+    laser = 40
     # Envia a primeira sequência de movimento
     #Config=[30*math.pi/180,30*math.pi/180,-30*math.pi/180,90*math.pi/180,90*math.pi/180,90*math.pi/180]
     Config=[j1,j2,j3,j4,j5,j6]
@@ -113,6 +113,7 @@ if clientID!=-1:
     
     #resolution, image = sim.simxGetVisionSensorImage(clientID, v1, 0, sim.simx_opmode_buffer)
     #linhas, cols, _ = image.shape   #obtem numero de linhas e colunas da imagem
+    cam = True
     linhas = 240
     cols = 320
     x_medio = int(cols / 2)         #calcula x do meio da tela
@@ -126,7 +127,8 @@ if clientID!=-1:
 
     qTraj = []
     df = []
-    while (sim.simxGetConnectionId(clientID) != -1):
+    #while (sim.simxGetConnectionId(clientID) != -1 and cam == True):
+    while(cam == True):
         err, resolution, image = sim.simxGetVisionSensorImage(clientID, v1, 0, sim.simx_opmode_buffer)
         
         J0_atual = sim.simxGetJointPosition(clientID,jq[0],sim.simx_opmode_oneshot)[1]
@@ -207,6 +209,7 @@ if clientID!=-1:
             #136,91,241.3288
             x6,y6,z6 = (2*(160-x_medio)),(2*(120-y_medio)),(1000*dist)
             #p_c = tImagem(2*(160-x_medio),2*(120-y_medio),1000*dist)
+            print(dist)
             if(dist<1 and dist > 0):
                 p_c = tImagem(x6,y6,z6)
                 #print(p_c)
@@ -215,73 +218,102 @@ if clientID!=-1:
                 destino.append(PC[1])
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 print(destino[-1])
-                break
+                cam = False
             
         elif err == sim.simx_return_novalue_flag:
             print("no image yet")
             pass
         else:
           print( err)
-          break
+          #break
         atual = sim.simxGetJointPosition(clientID,jq[0],sim.simx_opmode_oneshot)
         atualJ2 = sim.simxGetJointPosition(clientID,jq[2],sim.simx_opmode_oneshot)
         atualJ6 = sim.simxGetJointPosition(clientID,jq[5],sim.simx_opmode_oneshot)[1]
         #print(atual)
-        estendido = sim.simxGetJointPosition(clientID,jq[1],sim.simx_opmode_oneshot)[1]>=(0.1)
-        try:
-            #if(((destino[0][1] - q[1]+pi)**2 > 0.1)):# and gol == False):
-            if(q > Config):
-                
-                for i,j in enumerate(jq):
-                    #print(destino[-1])
-                    if i == 0:
-                        pass
-                    elif i == 1 or i == 2:
-                        #print(pi-destino[0][i])
-                        sim.simxSetJointTargetPosition(clientID,j,pi-destino[-1][i],sim.simx_opmode_oneshot)
-                        #sim.simxSetJointTargetPosition(clientID,j,1.57,sim.simx_opmode_oneshot)
-                    else:
-                        #print(destino[0][i])
-                        sim.simxSetJointTargetPosition(clientID,j,destino[-1][i],sim.simx_opmode_oneshot)
-                        #sim.simxSetJointTargetPosition(clientID,j,0,sim.simx_opmode_oneshot)
-                gol = True
-                
-                '''
-                if (xm_atual < 140):
-                    sim.simxSetJointTargetPosition(clientID,23,atual[1]-0.01,sim.simx_opmode_oneshot)
-                    xOK = False
-                elif (xm_atual > 180):
-                    sim.simxSetJointTargetPosition(clientID,23,atual[1]+0.01,sim.simx_opmode_oneshot)
-                    xOK = False
-                else:
-                    xOK = True
-                xm_atual=x_medio
 
-                if (y_medio < 100):
-                    sim.simxSetJointTargetPosition(clientID,29,atualJ2[1]+0.01,sim.simx_opmode_oneshot)
-                    yOK = False
-                elif (y_medio > 140):
-                    sim.simxSetJointTargetPosition(clientID,29,atualJ2[1]-0.01,sim.simx_opmode_oneshot)
-                    yOK = False
+        estendido = sim.simxGetJointPosition(clientID,jq[1],sim.simx_opmode_oneshot)[1]>=(0.1)
+    espera_de_execução_movimento('SeqMov')
+    '''
+    try:
+        #if(((destino[0][1] - q[1]+pi)**2 > 0.1)):# and gol == False):
+        if(q > Config and gol == False):
+            pc.plot(destino[-1])
+            dist = 2
+            for i,j in enumerate(jq):
+                #print(destino[-1])
+                if i == 0:
+                    pass
+                elif i == 1 or i == 2:
+                    #print(pi-destino[0][i])
+                    sim.simxSetJointTargetPosition(clientID,j,pi-destino[-1][i],sim.simx_opmode_oneshot)
+                    #sim.simxSetJointTargetPosition(clientID,j,1.57,sim.simx_opmode_oneshot)
                 else:
-                    yOK = True
-                    #sim.simxSetJointTargetPosition(clientID,38,4.5,sim.simx_opmode_oneshot)
-                
-                if (xOK and yOK):
-                    #print('capturar')
-                    try:
-                        sim.simxSetJointTargetPosition(clientID,38,atualJ6+3.14,sim.simx_opmode_oneshot)
-                    except:
-                        pass
-                '''
-            if(gol == True):
-                sim.simxSetJointTargetPosition(clientID,j,pi,sim.simx_opmode_oneshot)
-        except:
-            pass
+                    #print(destino[0][i])
+                    sim.simxSetJointTargetPosition(clientID,j,destino[-1][i],sim.simx_opmode_oneshot)
+                    #sim.simxSetJointTargetPosition(clientID,j,0,sim.simx_opmode_oneshot)
+            gol = True
+            
+            
+            if (xm_atual < 140):
+                sim.simxSetJointTargetPosition(clientID,23,atual[1]-0.01,sim.simx_opmode_oneshot)
+                xOK = False
+            elif (xm_atual > 180):
+                sim.simxSetJointTargetPosition(clientID,23,atual[1]+0.01,sim.simx_opmode_oneshot)
+                xOK = False
+            else:
+                xOK = True
+            xm_atual=x_medio
+
+            if (y_medio < 100):
+                sim.simxSetJointTargetPosition(clientID,29,atualJ2[1]+0.01,sim.simx_opmode_oneshot)
+                yOK = False
+            elif (y_medio > 140):
+                sim.simxSetJointTargetPosition(clientID,29,atualJ2[1]-0.01,sim.simx_opmode_oneshot)
+                yOK = False
+            else:
+                yOK = True
+                #sim.simxSetJointTargetPosition(clientID,38,4.5,sim.simx_opmode_oneshot)
+            
+            if (xOK and yOK):
+                #print('capturar')
+                try:
+                    sim.simxSetJointTargetPosition(clientID,38,atualJ6+3.14,sim.simx_opmode_oneshot)
+                except:
+                    pass
+            
+        if(gol == True):
+            sim.simxSetJointTargetPosition(clientID,j,pi,sim.simx_opmode_oneshot)
+    except:
+        pass
+    '''
+
+    Config=[]
+    for i,j in enumerate(destino[-1]):
+        if (j<0):
+            if(i==0 or i == 2):
+                j = pi+j
+            else:
+                j = -1*j
+            Config.append(j)
+        else:
+            if(i==0 or i == 2):
+                j = pi+j
+            Config.append(j)
+    pc.plot(Config)
+    #Config=[pi-0.1468398 ,  pi-2.29526532, pi-0.61810689, 0,0,0]
+    #Config = [ 0.21176678,  pi-0.52539497, pi-2.1626808 ,  0,0,0]
+    Dados_de_Movimento={"id":"SeqMov","tipo":"mov","Config":Config,"CoordVel":CoordVel,"Velmax":Velmax,"Acelmax":Acelmax}
+    
+    Empacotamento_dados_de_movimento=msgpack.packb(Dados_de_Movimento)
+    sim.simxCallScriptFunction(clientID,Manipulador,sim.sim_scripttype_childscript,'legacy_API_Dados_Movimento',[],[],[],Empacotamento_dados_de_movimento,sim.simx_opmode_oneshot)
+
+    # Executa a sequência de movimento
+    sim.simxCallScriptFunction(clientID,Manipulador,sim.sim_scripttype_childscript,'legacy_API_Movimento',[],[],[],'SeqMov',sim.simx_opmode_oneshot)
+    
     # Aguarda até que a sequência de movimento acima termine a execução
     espera_de_execução_movimento('SeqMov')
-    sim.simxStopSimulation(clientID,sim.simx_opmode_blocking)
-    sim.simxGetStringSignal(clientID,Nome_do_Sinal,sim.simx_opmode_discontinue)
+    #sim.simxStopSimulation(clientID,sim.simx_opmode_blocking)
+    #sim.simxGetStringSignal(clientID,Nome_do_Sinal,sim.simx_opmode_discontinue)
     sim.simxGetPingTime(clientID)
     
     # Encerra a conexão com o Coppelia
@@ -289,5 +321,6 @@ if clientID!=-1:
 else:
     print ('Falhou a conexão com o remote API server')
 cv2.destroyAllWindows()
+a = input()
 print ('Programa finalizado')
 
