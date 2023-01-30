@@ -72,8 +72,8 @@ if clientID!=-1:
     # Set-up some movement variables:
     Vel=5*math.pi/180
     Acel=5*math.pi/180
-    Velmax=[Vel/10,Vel,Vel,Vel,Vel,Vel]
-    Acelmax=[Acel/10,Acel,3/2*Acel,Acel,Acel,Acel]
+    Velmax=[4.74, 4.74, 4.74, 0.2, 4.74, 4.74]#[Vel/10,Vel,Vel,Vel,Vel,Vel]
+    Acelmax=[50.46858117,  47.47569844,  378.14578511,  675.56732765, 358.18710772,  142.89506928]#[Acel/10,Acel,3/2*Acel,Acel,Acel,Acel]
     CoordVel=[0,0,0,0,0,0]
 
     #configurações da camera
@@ -299,6 +299,7 @@ if clientID!=-1:
             if(i==0 or i == 2):
                 j = pi+j
             Config.append(j)
+    Config[4] +=pi/2
     pc.plot(Config)
     #Config=[pi-0.1468398 ,  pi-2.29526532, pi-0.61810689, 0,0,0]
     #Config = [ 0.21176678,  pi-0.52539497, pi-2.1626808 ,  0,0,0]
