@@ -71,9 +71,9 @@ if clientID!=-1:
 
     # Set-up some movement variables:
     Vel=5*math.pi/180
-    Acel=5*math.pi/180
-    Velmax=[4.74, 4.74, 4.74, 0.2, 4.74, 4.74]#[Vel/10,Vel,Vel,Vel,Vel,Vel]
-    Acelmax=[50.46858117,  47.47569844,  378.14578511,  675.56732765, 358.18710772,  142.89506928]#[Acel/10,Acel,3/2*Acel,Acel,Acel,Acel]
+    Acel=600*math.pi/180
+    Velmax=[[ 1.0428, 1.0428,  1.3746, 1.3746, 4.029 ,  4.029 ]]#[4.74, 4.74, 4.74, 0.2, 4.74, 4.74]#[Vel/10,Vel,Vel,Vel,Vel,Vel]
+    Acelmax=[Acel/10,Acel,3/2*Acel,Acel,Acel,Acel]
     CoordVel=[0,0,0,0,0,0]
 
     #configurações da camera
