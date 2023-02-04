@@ -70,9 +70,9 @@ if clientID!=-1:
     sim.simxGetStringSignal(clientID,Nome_do_Sinal,sim.simx_opmode_streaming)
 
     # Set-up some movement variables:
-    Vel=5*math.pi/180
+    Vel=13.0#5*math.pi/180
     Acel=600*math.pi/180
-    Velmax=[[ 1.0428, 1.0428,  1.3746, 1.3746, 4.029 ,  4.029 ]]#[4.74, 4.74, 4.74, 0.2, 4.74, 4.74]#[Vel/10,Vel,Vel,Vel,Vel,Vel]
+    Velmax=[Vel,Vel,Vel,Vel,Vel,Vel]
     Acelmax=[Acel/10,Acel,3/2*Acel,Acel,Acel,Acel]
     CoordVel=[0,0,0,0,0,0]
 
@@ -286,7 +286,10 @@ if clientID!=-1:
     except:
         pass
     '''
-
+    vel = [ 1.90777254,  1.91676066,  4.21490854,  8.32765953,  7.61692325,
+       13.05404777]
+    for i,hand in enumerate(jq):
+        sim.simxSetJointTargetVelocity(clientID, hand, vel[i], sim.simx_opmode_oneshot)
     Config=[]
     for i,j in enumerate(destino[-1]):
         if (j<0):
