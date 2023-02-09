@@ -209,7 +209,9 @@ if clientID!=-1:
             #136,91,241.3288
             x6,y6,z6 = (2*(160-x_medio)),(2*(120-y_medio)),(1000*dist)
             #p_c = tImagem(2*(160-x_medio),2*(120-y_medio),1000*dist)
-            print(dist)
+            I = sim.getShapeInertia(20) #printa matriz de inercia da base
+            print(I)
+            #print(dist)
             if(dist<1 and dist > 0):
                 p_c = tImagem(x6,y6,z6)
                 #print(p_c)
