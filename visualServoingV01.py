@@ -1,6 +1,22 @@
 # sim.py, simConst.py, and the remote API library available
 #python 3.7
 #https://www.coppeliarobotics.com/helpFiles/en/remoteApiFunctionsPython.htm
+
+'''
+1. Executar padrão de varredura:
+    J3 e J5 a 90°
+    J4 e J6 varrem de 0° a 180
+    Se J5<180 incrementa 1°
+2. Computar Cinemática Inversa do objeto
+3. Computar Cinemática Diferencial para obter
+velocidade de juntas a partir da vel. linear para as 3 1ªs juntas
+4. Deslocar EF para posição de captura
+5. Computar vetor erro de posição linear
+6. Mover manipulador a partir do vetor com ganho proporcional
+ao inverso da massa de cada elo
+7. Executar movimento de captura: J5 = 180°
+8. Recolher manipulador com J5 fixo em 180°
+'''
 import time
 import cv2
 import numpy as np
@@ -37,14 +53,29 @@ def plotar(conf,loc):
     P = SE3(-loc[2],loc[1],loc[0])
     #print(P)
     TP = T*P
-    print(TP[0])
+    #print(TP[0])
     juntas = pc.ik(TP)
     return(TP,juntas)
+
+def movimento(q):
+        Config=q
+
+        Dados_de_Movimento={"id":"SeqMov","tipo":"mov","Config":Config,"CoordVel":CoordVel,"Velmax":Velmax,"Acelmax":Acelmax}
+        
+        Empacotamento_dados_de_movimento=msgpack.packb(Dados_de_Movimento)
+        sim.simxCallScriptFunction(clientID,Manipulador,sim.sim_scripttype_childscript,'legacy_API_Dados_Movimento',[],[],[],Empacotamento_dados_de_movimento,sim.simx_opmode_oneshot)
+
+        # Executa a sequência de movimento
+        sim.simxCallScriptFunction(clientID,Manipulador,sim.sim_scripttype_childscript,'legacy_API_Movimento',[],[],[],'SeqMov',sim.simx_opmode_oneshot)
+        
+        # Aguarda até que a sequência de movimento acima termine a execução
+        espera_de_execução_movimento('SeqMov')
 
 destino = []
 
 # carrega o classificador em cascata
 cascata = cv2.CascadeClassifier('cascade.xml')
+delta_omega = 0
 
 print ('Programa Iniciado')
 sim.simxFinish(-1) # Fecha todas as conexões
@@ -70,9 +101,11 @@ if clientID!=-1:
     sim.simxGetStringSignal(clientID,Nome_do_Sinal,sim.simx_opmode_streaming)
 
     # Set-up some movement variables:
+    vel = [ 1.90777254,  1.91676066,  4.21490854,  8.32765953,  7.61692325,
+       13.05404777]
     Vel=13.0#5*math.pi/180
     Acel=600*math.pi/180
-    Velmax=[Vel,Vel,Vel,Vel,Vel,Vel]
+    Velmax= vel #[Vel,Vel,Vel,Vel,Vel,Vel]
     Acelmax=[Acel/10,Acel,3/2*Acel,Acel,Acel,Acel]
     CoordVel=[0,0,0,0,0,0]
 
@@ -86,18 +119,25 @@ if clientID!=-1:
     sim.simxStartSimulation(clientID,sim.simx_opmode_blocking)
 
     # Espera de leitura
+    '''
+    1. Executar padrão de varredura:
+    J3 e J5 a 90°
+    J4 e J6 varrem de 0° a 180
+    Se J5<180 incrementa 1°
+    '''
     espera_de_execução_movimento('Ler')
     pi = math.pi
     j1 = 0*math.pi/180
-    j2 = 15*math.pi/180
-    j3 = 45*math.pi/180
-    j4 = 0
-    j5 = 180*math.pi/180
-    j6 = 0*math.pi/180
+    j2 = 0*math.pi/180
+    j3 = 90*math.pi/180
+    j4 = 0*math.pi/180
+    j5 = 70*math.pi/180
+    j6 = -180*math.pi/180
     #jq = [23,26,29,32,35,37]
     #jq = [22, 25, 28, 31, 34, 36]
-    jq = [24, 27, 29, 32, 35, 37]
-    laser = 40
+    jq = [24, 27, 30, 33, 36, 38]
+    laser = 41
+    inercial = 47
     # Envia a primeira sequência de movimento
     #Config=[30*math.pi/180,30*math.pi/180,-30*math.pi/180,90*math.pi/180,90*math.pi/180,90*math.pi/180]
     Config=[j1,j2,j3,j4,j5,j6]
@@ -110,7 +150,8 @@ if clientID!=-1:
 
     # Executa a sequência de movimento
     sim.simxCallScriptFunction(clientID,Manipulador,sim.sim_scripttype_childscript,'legacy_API_Movimento',[],[],[],'SeqMov',sim.simx_opmode_oneshot)
-    
+    espera_de_execução_movimento('SeqMov')
+
     #resolution, image = sim.simxGetVisionSensorImage(clientID, v1, 0, sim.simx_opmode_buffer)
     #linhas, cols, _ = image.shape   #obtem numero de linhas e colunas da imagem
     cam = True
@@ -134,6 +175,10 @@ if clientID!=-1:
         J0_atual = sim.simxGetJointPosition(clientID,jq[0],sim.simx_opmode_oneshot)[1]
         J1_atual = sim.simxGetJointPosition(clientID,jq[1],sim.simx_opmode_oneshot)[1]
         J2_atual = sim.simxGetJointPosition(clientID,jq[2],sim.simx_opmode_oneshot)[1]
+        J3_atual = sim.simxGetJointPosition(clientID,jq[3],sim.simx_opmode_oneshot)[1]
+        J4_atual = sim.simxGetJointPosition(clientID,jq[4],sim.simx_opmode_oneshot)[1]
+        J5_atual = sim.simxGetJointPosition(clientID,jq[5],sim.simx_opmode_oneshot)[1]
+        
         '''
         for item in range(314):
             sim.simxSetJointTargetPosition(clientID,jq[1],J1_atual+item/100,sim.simx_opmode_oneshot)
@@ -168,20 +213,7 @@ if clientID!=-1:
                 x_medio = int((x + x + w) / 2)
                 y_medio = int((y + y + h) / 2)
                 break
-            '''
-            for cnt in contornos:
-                (x, y, w, h) = cv2.boundingRect(cnt)
-                #print(x,y,w,h)
-                crit = ((x_medio)-x)**2#(int((x + x + w) / 2))**2)
-                crit_y = ((y_medio)-y)**2
-                if (crit>16 and crit < 100 and crit_y < 64):
-                    x_medio = x#int((x + x + w) / 2)
-                    y_medio = y#int((y + y + h) / 2)
-                    #print(crit)
-                #break
-            #print(x_medio)
-            '''
-            
+
             cv2.line(img, (x_medio, 0), (x_medio, 240), (0, 255, 0), 1)
             cv2.line(img, (0, y_medio), (320, y_medio), (0,255,0), 1)
             #cv2.line(cinza_mask, (x_medio, 0), (x_medio, 240), (255, 255, 255), 1)
@@ -198,10 +230,22 @@ if clientID!=-1:
                     sim.simxGetJointPosition(clientID,jq[3],sim.simx_opmode_oneshot)[1],
                     sim.simxGetJointPosition(clientID,jq[4],sim.simx_opmode_oneshot)[1],
                     sim.simxGetJointPosition(clientID,jq[5],sim.simx_opmode_oneshot)[1]]
+            #print(q)
             qTraj.append(q)
             xOK = False
             yOK = False
             dist = sim.simxReadProximitySensor(clientID,laser,sim.simx_opmode_streaming)[2][2]
+            
+            omega_base = sim.simxGetObjectOrientation(clientID,20,inercial,sim.simx_opmode_streaming)[1]
+            delta_omega = delta_omega-omega_base[1][1]
+            if(dist > 0.1 and dist < 1.0):
+                qd = q
+                qd[1] = qd[1]+0.03
+                qd[2] = qd[2]+0.02
+                qd[4] = qd[4]+0.01
+                movimento(q)
+                print(omega_base[1])    #printa rotacao em ÿ em relacao ao referencial inercial
+
             #if (dist != 0):
                 #print(dist)
             #print([x_medio,y_medio,1000*dist])
@@ -209,8 +253,8 @@ if clientID!=-1:
             #136,91,241.3288
             x6,y6,z6 = (2*(160-x_medio)),(2*(120-y_medio)),(1000*dist)
             #p_c = tImagem(2*(160-x_medio),2*(120-y_medio),1000*dist)
-            I = sim.getShapeInertia(20) #printa matriz de inercia da base
-            print(I)
+            #I = sim.getShapeInertia(20) #printa matriz de inercia da base
+            #print(I)
             #print(dist)
             if(dist<1 and dist > 0):
                 p_c = tImagem(x6,y6,z6)
@@ -219,7 +263,7 @@ if clientID!=-1:
                 pCube.append(PC[0])
                 destino.append(PC[1])
             if cv2.waitKey(1) & 0xFF == ord('q'):
-                print(destino[-1])
+                #print(destino[-1])
                 cam = False
             
         elif err == sim.simx_return_novalue_flag:
@@ -234,59 +278,7 @@ if clientID!=-1:
         #print(atual)
 
         estendido = sim.simxGetJointPosition(clientID,jq[1],sim.simx_opmode_oneshot)[1]>=(0.1)
-    espera_de_execução_movimento('SeqMov')
-    '''
-    try:
-        #if(((destino[0][1] - q[1]+pi)**2 > 0.1)):# and gol == False):
-        if(q > Config and gol == False):
-            pc.plot(destino[-1])
-            dist = 2
-            for i,j in enumerate(jq):
-                #print(destino[-1])
-                if i == 0:
-                    pass
-                elif i == 1 or i == 2:
-                    #print(pi-destino[0][i])
-                    sim.simxSetJointTargetPosition(clientID,j,pi-destino[-1][i],sim.simx_opmode_oneshot)
-                    #sim.simxSetJointTargetPosition(clientID,j,1.57,sim.simx_opmode_oneshot)
-                else:
-                    #print(destino[0][i])
-                    sim.simxSetJointTargetPosition(clientID,j,destino[-1][i],sim.simx_opmode_oneshot)
-                    #sim.simxSetJointTargetPosition(clientID,j,0,sim.simx_opmode_oneshot)
-            gol = True
-            
-            
-            if (xm_atual < 140):
-                sim.simxSetJointTargetPosition(clientID,23,atual[1]-0.01,sim.simx_opmode_oneshot)
-                xOK = False
-            elif (xm_atual > 180):
-                sim.simxSetJointTargetPosition(clientID,23,atual[1]+0.01,sim.simx_opmode_oneshot)
-                xOK = False
-            else:
-                xOK = True
-            xm_atual=x_medio
-
-            if (y_medio < 100):
-                sim.simxSetJointTargetPosition(clientID,29,atualJ2[1]+0.01,sim.simx_opmode_oneshot)
-                yOK = False
-            elif (y_medio > 140):
-                sim.simxSetJointTargetPosition(clientID,29,atualJ2[1]-0.01,sim.simx_opmode_oneshot)
-                yOK = False
-            else:
-                yOK = True
-                #sim.simxSetJointTargetPosition(clientID,38,4.5,sim.simx_opmode_oneshot)
-            
-            if (xOK and yOK):
-                #print('capturar')
-                try:
-                    sim.simxSetJointTargetPosition(clientID,38,atualJ6+3.14,sim.simx_opmode_oneshot)
-                except:
-                    pass
-            
-        if(gol == True):
-            sim.simxSetJointTargetPosition(clientID,j,pi,sim.simx_opmode_oneshot)
-    except:
-        pass
+    #espera_de_execução_movimento('SeqMov')
     '''
     vel = [ 1.90777254,  1.91676066,  4.21490854,  8.32765953,  7.61692325,
        13.05404777]
@@ -318,8 +310,9 @@ if clientID!=-1:
     
     # Aguarda até que a sequência de movimento acima termine a execução
     espera_de_execução_movimento('SeqMov')
-    #sim.simxStopSimulation(clientID,sim.simx_opmode_blocking)
-    #sim.simxGetStringSignal(clientID,Nome_do_Sinal,sim.simx_opmode_discontinue)
+    '''
+    sim.simxStopSimulation(clientID,sim.simx_opmode_blocking)
+    sim.simxGetStringSignal(clientID,Nome_do_Sinal,sim.simx_opmode_discontinue)
     sim.simxGetPingTime(clientID)
     
     # Encerra a conexão com o Coppelia
@@ -327,6 +320,6 @@ if clientID!=-1:
 else:
     print ('Falhou a conexão com o remote API server')
 cv2.destroyAllWindows()
-a = input()
+#a = input()
 print ('Programa finalizado')
 
