@@ -237,7 +237,7 @@ if clientID!=-1:
             dist = sim.simxReadProximitySensor(clientID,laser,sim.simx_opmode_streaming)[2][2]
             
             omega_base = sim.simxGetObjectOrientation(clientID,20,inercial,sim.simx_opmode_streaming)[1]
-            delta_omega = delta_omega-omega_base[1][1]
+            delta_omega = delta_omega-omega_base[1]
             if(dist > 0.1 and dist < 1.0):
                 qd = q
                 qd[1] = qd[1]+0.03
