@@ -205,7 +205,7 @@ if clientID!=-1:
             
             cinza = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             # detecta as faces
-            faces = cascata.detectMultiScale(cinza, 1.1, 5,None,None)#[320,240])   #(frame, fator de escala, min vizinhos, tam min, tam max,)
+            faces = cascata.detectMultiScale(cinza, 1.05, 4,None,None)#[320,240])   #(frame, fator de escala, min vizinhos, tam min, tam max,)
             
             # desenha retangulo em volta de cada face
             for (x, y, w, h) in faces:
@@ -238,20 +238,51 @@ if clientID!=-1:
             
             omega_base = sim.simxGetObjectOrientation(clientID,20,inercial,sim.simx_opmode_streaming)[1]
             delta_omega = delta_omega-omega_base[1]
+            ''''''
+            # estabelecer relação de controle e matriz de ganho - OK
+            # publicar coordenadas em uma memória assíncrona (ex: matriz global) para usar como sinal de erro
+            ''''''
+            x6,y6,z6 = (2*(160-x_medio)),(2*(120-y_medio)),(1000*dist)
+
+            def controle(lista):
+                dx, dy, dz = lista
+                qd = np.array(q)
+                J_inv = np.linalg.inv(pc.jac(qd))
+                #from spatialmath import SE3
+                #dTheta = J_inv*SE3(dx,dy,dz)
+                v = np.array([dx/1000,dy/1000,dz/100,0,0,0])
+                #print(v)
+                dTheta = J_inv @ v
+                print(dTheta)
+                return(dTheta)
+                #return J_inv #dTheta
+            
+            #print(controle([dist,x_medio,y_medio]))
+
             if(dist > 0.1 and dist < 1.0):
+                p_c = tImagem(z6,x6,y6)
+                ganho = controle(p_c)/1000
                 qd = q
-                qd[1] = qd[1]+0.03
-                qd[2] = qd[2]+0.02
-                qd[4] = qd[4]+0.01
+                qd[1] = qd[1]+ganho[1]#(0.2*0.36)
+                qd[2] = qd[2]+ganho[2]#(0.1*0.32)
+                
+            if(y_medio > 130):
+                qd[4] = qd[4]+ganho[4]#(0.1*0.32)
                 movimento(q)
-                print(omega_base[1])    #printa rotacao em ÿ em relacao ao referencial inercial
+            elif(y_medio < 110):
+                qd[4] = qd[4]-ganho[4]#(0.1*0.32)
+                movimento(q)
+
+            print(omega_base[1])    #printa rotacao em ÿ em relacao ao referencial inercial
+            print(y_medio)
+            print(dist)
 
             #if (dist != 0):
                 #print(dist)
             #print([x_medio,y_medio,1000*dist])
             #135,116,249.4227
             #136,91,241.3288
-            x6,y6,z6 = (2*(160-x_medio)),(2*(120-y_medio)),(1000*dist)
+            
             #p_c = tImagem(2*(160-x_medio),2*(120-y_medio),1000*dist)
             #I = sim.getShapeInertia(20) #printa matriz de inercia da base
             #print(I)
