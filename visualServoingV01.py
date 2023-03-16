@@ -137,7 +137,7 @@ if clientID!=-1:
     #jq = [22, 25, 28, 31, 34, 36]
     jq = [24, 27, 30, 33, 36, 38]
     laser = 41
-    inercial = 47
+    inercial = 45
     # Envia a primeira sequência de movimento
     #Config=[30*math.pi/180,30*math.pi/180,-30*math.pi/180,90*math.pi/180,90*math.pi/180,90*math.pi/180]
     Config=[j1,j2,j3,j4,j5,j6]
@@ -205,7 +205,7 @@ if clientID!=-1:
             
             cinza = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             # detecta as faces
-            faces = cascata.detectMultiScale(cinza, 1.05, 4,None,None)#[320,240])   #(frame, fator de escala, min vizinhos, tam min, tam max,)
+            faces = cascata.detectMultiScale(cinza, 1.06, 5,None,None)#[320,240])   #(frame, fator de escala, min vizinhos, tam min, tam max,)
             
             # desenha retangulo em volta de cada face
             for (x, y, w, h) in faces:
@@ -238,42 +238,51 @@ if clientID!=-1:
             
             omega_base = sim.simxGetObjectOrientation(clientID,20,inercial,sim.simx_opmode_streaming)[1]
             delta_omega = delta_omega-omega_base[1]
-            ''''''
+            '''
             # estabelecer relação de controle e matriz de ganho - OK
             # publicar coordenadas em uma memória assíncrona (ex: matriz global) para usar como sinal de erro
-            ''''''
+            #   ENQUANTO A ORIENTAÇÃO DO EE NÃO FOR ALTERADA, NÃO HAVERÁ VELOCIDADE NAS 3 ULTIMAS JUNTAS
+            #   
+            '''
             x6,y6,z6 = (2*(160-x_medio)),(2*(120-y_medio)),(1000*dist)
 
-            def controle(lista):
-                dx, dy, dz = lista
+            def controle(lista):    #RETORNANDO UM VALOR MUITO ALTO EM RADIANOS
+                dy, dz, dx = lista
                 qd = np.array(q)
                 J_inv = np.linalg.inv(pc.jac(qd))
                 #from spatialmath import SE3
                 #dTheta = J_inv*SE3(dx,dy,dz)
-                v = np.array([dx/1000,dy/1000,dz/100,0,0,0])
+                v = np.array([dx/1000,dy/1000,dz/1000,0,0,0])
                 #print(v)
                 dTheta = J_inv @ v
-                print(dTheta)
+                print(dTheta)   #ta retornando 3 valores ao inves de 6 dos 6 DOF
                 return(dTheta)
                 #return J_inv #dTheta
             
             #print(controle([dist,x_medio,y_medio]))
 
-            if(dist > 0.1 and dist < 1.0):
-                p_c = tImagem(z6,x6,y6)
-                ganho = controle(p_c)/1000
-                qd = q
-                qd[1] = qd[1]+ganho[1]#(0.2*0.36)
-                qd[2] = qd[2]+ganho[2]#(0.1*0.32)
-                
-            if(y_medio > 130):
-                qd[4] = qd[4]+ganho[4]#(0.1*0.32)
-                movimento(q)
-            elif(y_medio < 110):
-                qd[4] = qd[4]-ganho[4]#(0.1*0.32)
-                movimento(q)
-
-            print(omega_base[1])    #printa rotacao em ÿ em relacao ao referencial inercial
+            #if(dist > 0.1 and dist < 1.0):
+            p_c = tImagem(x6,y6,z6)
+            print(p_c)
+            ganho = controle(p_c)/100
+            qd = q
+            qd[1] = qd[1]+ganho[1]#(0.2*0.36)
+            qd[2] = qd[2]+ganho[2]#(0.1*0.32)
+            
+                #movimento(q)
+            '''
+                if(y_medio > 130):
+                    qd[4] = qd[4]+0.01#+ganho[4]#(0.1*0.32)
+                    #movimento(q)
+                elif(y_medio < 110):
+                    qd[4] = qd[4]-0.01#-ganho[4]#(0.1*0.32)
+                    #movimento(q)
+                #print(ganho[1],ganho[2],ganho[4])
+                '''
+            #print(qd[1],qd[2],qd[4])
+            #print(ganho)
+            movimento(qd)
+            #print(omega_base[1])    #printa rotacao em ÿ em relacao ao referencial inercial
             print(y_medio)
             print(dist)
 
