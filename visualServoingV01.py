@@ -42,7 +42,8 @@ def tImagem(x_im, y_im, z_real):
     f = 432.501742465656
     x_real = (z_real*(x_im-c_u))/(f*imAlpha)
     y_real = (z_real*(y_im-c_v))/(f)
-    return([x_real,y_real,z_real])
+    #return([x_real,y_real,z_real])
+    return([-z_real,x_real,-y_real])
 
 def ik(lista):
     Pa = SE3(lista[0],lista[1],lista[2])
@@ -255,7 +256,7 @@ if clientID!=-1:
                 v = np.array([dx/1000,dy/1000,dz/1000,0,0,0])
                 #print(v)
                 dTheta = J_inv @ v
-                print(dTheta)   #ta retornando 3 valores ao inves de 6 dos 6 DOF
+                print("Delta theta: ",dTheta)   #ta retornando 3 valores ao inves de 6 dos 6 DOF
                 return(dTheta)
                 #return J_inv #dTheta
             
@@ -263,7 +264,14 @@ if clientID!=-1:
 
             #if(dist > 0.1 and dist < 1.0):
             p_c = tImagem(x6,y6,z6)
-            print(p_c)
+            '''           ^
+                          |z6(-yc)
+                          |
+                          |
+            x6(-zc)<______|y6(xc)            
+
+            '''
+            print("Posicao sat em relacao a cam (mm): ",p_c)
             ganho = controle(p_c)/100
             qd = q
             qd[1] = qd[1]+ganho[1]#(0.2*0.36)
@@ -281,10 +289,10 @@ if clientID!=-1:
                 '''
             #print(qd[1],qd[2],qd[4])
             #print(ganho)
-            movimento(qd)
+            #movimento(qd)
             #print(omega_base[1])    #printa rotacao em ÿ em relacao ao referencial inercial
-            print(y_medio)
-            print(dist)
+            print("y medio: ",y_medio)
+            print("laser: ",dist)
 
             #if (dist != 0):
                 #print(dist)
